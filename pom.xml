@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>3.3.0</version>
+		<relativePath/>
 	</parent>
 
 	<name>Explore With Me</name>
@@ -22,9 +23,16 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<!-- Добавляем модули проекта -->
+	<modules>
+		<module>main-service</module>
+		<module>stat</module>
+	</modules>
+
 	<build>
 		<pluginManagement>
 			<plugins>
+				<!-- Запуск тестов -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
@@ -34,6 +42,8 @@
 						</systemPropertyVariables>
 					</configuration>
 				</plugin>
+
+				<!-- Checkstyle -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
@@ -60,6 +70,8 @@
 						</dependency>
 					</dependencies>
 				</plugin>
+
+				<!-- SpotBugs -->
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
@@ -76,6 +88,8 @@
 						</execution>
 					</executions>
 				</plugin>
+
+				<!-- JaCoCo (анализ покрытия тестами) -->
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
@@ -147,6 +161,8 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<!-- Определяем профили -->
 	<profiles>
 		<profile>
 			<id>check</id>
@@ -184,4 +200,36 @@
 		</profile>
 	</profiles>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- Версия для stat-client -->
+			<dependency>
+				<groupId>ru.practicum</groupId>
+				<artifactId>stat-client</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+
+			<!-- Версия для stat-dto -->
+			<dependency>
+				<groupId>ru.practicum</groupId>
+				<artifactId>stat-dto</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+
+			<!-- Jackson (JSON) -->
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.16.0</version>
+			</dependency>
+
+			<!-- Jakarta Validation -->
+			<dependency>
+				<groupId>jakarta.validation</groupId>
+				<artifactId>jakarta.validation-api</artifactId>
+				<version>3.0.2</version>
+			</dependency>
+		</dependencies>
+
+	</dependencyManagement>
 </project>
