@@ -1,0 +1,70 @@
+spring:
+  cloud:
+    gateway:
+      discovery.locator.enabled: true
+      routes:
+        # Админские контроллеры
+        - id: admin_routes
+          uri: lb://main-service
+          predicates:
+            - Path=/admin/**
+
+        - id: main_misc
+          uri: lb://main-service
+          predicates:
+            - Path=/main/**
+
+        # Приватные контроллеры
+        - id: user_routes
+          uri: lb://main-service
+          predicates:
+            - Path=/users/**
+
+        # Публичные контроллеры
+        - id: public_categories
+          uri: lb://main-service
+          predicates:
+            - Path=/categories/**
+
+        - id: public_event_comments
+          uri: lb://main-service
+          predicates:
+            - Path=/events/*/comments/**
+
+        - id: public_compilations
+          uri: lb://main-service
+          predicates:
+            - Path=/compilations/**
+
+        - id: public_events
+          uri: lb://main-service
+          predicates:
+            - Path=/events/**
+
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET
+            statuses: NOT_FOUND
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
