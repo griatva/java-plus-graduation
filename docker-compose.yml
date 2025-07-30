@@ -1,15 +1,4 @@
 services:
-  #  stat-server:
-  #    build: stat/stat-server
-  #    container_name: stat-server
-  #    ports:
-  #      - "9090:9090"
-  #    depends_on:
-  #      - stats-db
-  #    environment:
-  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats-db
-  #      - SPRING_DATASOURCE_USERNAME=stat
-  #      - SPRING_DATASOURCE_PASSWORD=stat
 
   stats-db:
     image: postgres:16.1
@@ -26,31 +15,63 @@ services:
       interval: 5s
       retries: 10
 
-  #  ewm-service:
-  #    build: main-service
-  #    container_name: ewm-service
-  #    ports:
-  #      - "8080:8080"
-  #    depends_on:
-  #      - ewm-db
-  #      - stat-server
-  #    environment:
-  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm-db
-  #      - SPRING_DATASOURCE_USERNAME=stat
-  #      - SPRING_DATASOURCE_PASSWORD=stat
-  #      - STAT_SERVER_URL=http://stat-server:9090   # добавлено
-
-  ewm-db:
+  event-db:
     image: postgres:16.1
-    container_name: ewm-db
+    container_name: event-db
     ports:
       - "6542:5432"
     environment:
       - POSTGRES_USER=stat
       - POSTGRES_PASSWORD=stat
-      - POSTGRES_DB=ewm-db
+      - POSTGRES_DB=event-db
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "stat", "-d", "ewm-db" ]
+      test: [ "CMD", "pg_isready", "-U", "stat", "-d", "event-db" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  user-db:
+    image: postgres:16.1
+    container_name: user-db
+    ports:
+      - "6544:5432"
+    environment:
+      - POSTGRES_USER=stat
+      - POSTGRES_PASSWORD=stat
+      - POSTGRES_DB=user-db
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "stat", "-d", "user-db" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+
+  comment-db:
+    image: postgres:16.1
+    container_name: comment-db
+    ports:
+      - "6545:5432"
+    environment:
+      - POSTGRES_USER=stat
+      - POSTGRES_PASSWORD=stat
+      - POSTGRES_DB=comment-db
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "stat", "-d", "comment-db" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  request-db:
+    image: postgres:16.1
+    container_name: request-db
+    ports:
+      - "6546:5432"
+    environment:
+      - POSTGRES_USER=stat
+      - POSTGRES_PASSWORD=stat
+      - POSTGRES_DB=request-db
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "stat", "-d", "request-db" ]
       timeout: 5s
       interval: 5s
       retries: 10

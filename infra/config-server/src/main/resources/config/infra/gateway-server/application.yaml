@@ -3,41 +3,72 @@ spring:
     gateway:
       discovery.locator.enabled: true
       routes:
-        # Админские контроллеры
-        - id: admin_routes
-          uri: lb://main-service
+        # USER-SERVICE контроллеры
+        - id: user_service_routes
+          uri: lb://user-service
           predicates:
-            - Path=/admin/**
+            - Path=/admin/users/**
 
-        - id: main_misc
-          uri: lb://main-service
+        # COMMENT-SERVICE контроллеры
+        - id: admin_comment_service_routes
+          uri: lb://comment-service
+          predicates:
+            - Path=/admin/comments/**
+
+        - id: private_comment_service_routes
+          uri: lb://comment-service
+          predicates:
+            - Path=/users/{userId}/comments/**
+
+        - id: public_comment_service_routes
+          uri: lb://comment-service
+          predicates:
+            - Path=/events/{eventId}/comments/**
+
+        # REQUEST-SERVICE контроллеры
+        - id: private_request_service_routes
+          uri: lb://request-service
+          predicates:
+            - Path=/users/{userId}/requests/**
+
+        # EVENT-SERVICE контроллеры
+        - id: admin_categories_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/categories/**
+
+        - id: admin_compilation_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/compilations/**
+
+        - id: admin_event_service_routes
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/**
+
+        - id: main_event_service_routes
+          uri: lb://event-service
           predicates:
             - Path=/main/**
 
-        # Приватные контроллеры
-        - id: user_routes
-          uri: lb://main-service
+        - id: private_event_service_routes
+          uri: lb://event-service
           predicates:
-            - Path=/users/**
+            - Path=/users/{userId}/events/**
 
-        # Публичные контроллеры
-        - id: public_categories
-          uri: lb://main-service
+        - id: public_category_event_service_routes
+          uri: lb://event-service
           predicates:
             - Path=/categories/**
 
-        - id: public_event_comments
-          uri: lb://main-service
-          predicates:
-            - Path=/events/*/comments/**
-
-        - id: public_compilations
-          uri: lb://main-service
+        - id: public_compilation_event_service_routes
+          uri: lb://event-service
           predicates:
             - Path=/compilations/**
 
-        - id: public_events
-          uri: lb://main-service
+        - id: public_event_service_routes
+          uri: lb://event-service
           predicates:
             - Path=/events/**
 
