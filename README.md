@@ -46,6 +46,21 @@ DiscoveryClient и RetryTemplate.
 Spring Cloud OpenFeign, 
 Spring Cloud Circuit Breaker
 
+**Этап 3:**
+
+Рекомендательная система (Collector • Aggregator • Analyzer)
+
+Микросервисная конвейерная обработка данных в реальном времени с использованием Apache Kafka и gRPC:
+Состоит из следующих сервисов: 
+* Collector
+* Aggregator
+* Analyzer
+
+Каждый сервис:
+* подхватывает конфигурацию из службы обнаружения
+* запускается на случайном gRPC-порту
+* использует Docker Compose для развертывания Kafka.
+
 ---
 
 ##  Архитектура
@@ -76,27 +91,47 @@ Spring Cloud Circuit Breaker
 - **user-service**  
   Сервис управления пользователями. Использует базу данных `user-db`.
 
+- **Collector**  
+  • gRPC-сервис для приёма действий пользователя (просмотр, регистрация, лайк)  
+  • Публикует Avro-сообщения в топик `stats.user-actions.v1`
+
+- **Aggregator**  
+  • Читает `stats.user-actions.v1`  
+  • Поддерживает матрицу весов пользователей–событий и частные суммы Sₘᵢₙ, Sₐ, S_b
+  • Инкрементально вычисляет косинусное сходство событий  
+  • Публикует результаты в топик `stats.events-similarity.v1` в формате Avro
+
+- **Analyzer**  
+  • Читает оба топика:  
+    – `stats.user-actions.v1` (для сохранения максимальных весов действий)  
+    – `stats.events-similarity.v1` (для сохранения коэффициентов сходства)  
+  • Предоставляет gRPC-методы:  
+    – `GetSimilarEvents(eventId, userId, maxResults)` — N наиболее похожих событий, с которыми пользователь ещё не взаимодействовал  
+    – `GetRecommendationsForUser(userId, maxResults)` — персонализированные рекомендации на основе недавней истории и сходства  
+    – `GetInteractionsCount(eventIds)` — суммарные веса взаимодействий по списку событий
+
 
 ### Взаимодействие сервисов
 
 - Все сервисы регистрируются в **discovery-server**.
 - Конфигурации загружаются через **config-server**.
 - Внешние запросы приходят в **gateway**, который перенаправляет их к нужному сервису.
-- Для внутреннего взаимодействия сервисы используют **Feign-клиентов** и Eureka.
-- Каждому сервису соответствует отдельная PostgreSQL база данных.
+- Для внутреннего взаимодействия сервисы используют **Feign-клиентов**, gRPC и Kafka
+
 
 ---
 
 ### Docker Compose
 Файл docker-compose.yml поднимает:
-5 сервисов PostgreSQL (по одной базе данных на каждый сервис);
+* 5 баз данных PostgreSQL (по одной базе данных на каждый сервис);
+* Kafka
 
 ---
 
 ## Внутренний API
 
 Схема внутреннего взаимодействия микросервисов проекта:
-![img.png](img.png)
+![img_2.png](img_2.png)
 
 * **Event Service** (создан отдельный контроллер для внутренних эндпоинтов - InternalEventController):
   - `GET /internal/events/{id}` - получение события по его id (для CommentService и RequestService)
@@ -129,7 +164,49 @@ Spring Cloud Circuit Breaker
   - `PUT /internal/events/requests` - обновление информации о заявках на участие, например, статуса (для EventService)
     Возвращаемое значение = Integer
 
+---
 
+## API рекомендательных сервисов
+
+### Collector Service
+(gRPC-сервер для приёма пользовательских действий)
+- **RPC** `CollectUserAction(UserActionProto) returns (google.protobuf.Empty)`
+  - **UserActionProto**:
+    - `int64 user_id`
+    - `int64 event_id`
+    - `ActionTypeProto action_type`  (_VIEW, REGISTER, LIKE_)
+    - `google.protobuf.Timestamp timestamp`
+  - публикует Avro-сообщение `UserActionAvro` в топик `stats.user-actions.v1`
+
+---
+
+### Aggregator Service
+(взаимодействует исключительно через Kafka; внешних HTTP/gRPC-эндпоинтов нет)
+- потребляет `stats.user-actions.v1`
+- инкрементально вычисляет сходства и публикует Avro `EventSimilarityAvro` в `stats.events-similarity.v1`
+
+---
+
+### Analyzer Service
+(gRPC-сервер для выдачи рекомендаций)
+- **RPC** `GetSimilarEvents(SimilarEventsRequestProto) returns (stream RecommendedEventProto)`
+  - **SimilarEventsRequestProto**:
+    - `int64 event_id`
+    - `int64 user_id`
+    - `int32 max_results`
+  - возвращает N похожих событий, с которыми пользователь ещё не взаимодействовал
+- **RPC** `GetRecommendationsForUser(UserPredictionsRequestProto) returns (stream RecommendedEventProto)`
+  - **UserPredictionsRequestProto**:
+    - `int64 user_id`
+    - `int32 max_results`
+  - возвращает N персональных рекомендаций на основе истории и сходства
+- **RPC** `GetInteractionsCount(InteractionsCountRequestProto) returns (stream RecommendedEventProto)`
+  - **InteractionsCountRequestProto**:
+    - `repeated int64 event_id`
+  - возвращает для каждого event_id сумму весов всех взаимодействий
+- **RecommendedEventProto**:
+  - `int64 event_id`
+  - `double score`
 
 #### Feign-клиенты:
 
@@ -138,6 +215,29 @@ Spring Cloud Circuit Breaker
 * **StatsClient** - используется в EventService для сохранения и получения статистики.
 * **ParticipationRequestClient** - используется в EventService для получения информации и заявках для одного или нескольких событий,
   а также для подсчета согласованных заявок и обновлении статуса заявок. 
+---
+
+#### gRPC-клиенты
+
+* **CollectorClient** — в EventService и RequestService отправляет действия пользователя (`view`, `like`, `register`) в Collector Service по методу `CollectUserAction(UserActionProto)`.
+* **RecommendationsClient** — в EventService запрашивает у Analyzer Service:
+  - совокупный вес взаимодействий (`GetInteractionsCount`),
+  - похожие события (`GetSimilarEvents`),
+  - персональные рекомендации (`GetRecommendationsForUser`).
+
+---
+
+#### Kafka-топики
+
+1. **stats.user-actions.v1**
+  - Producer: Collector Service (Avro `UserActionAvro`)
+  - Consumers:
+    - Aggregator Service (для вычисления сходства событий)
+    - Analyzer Service (для обновления истории взаимодействий)
+
+2. **stats.events-similarity.v1**
+  - Producer: Aggregator Service (Avro `EventSimilarityAvro`)
+  - Consumer: Analyzer Service (для сохранения коэффициентов сходства)
 
 #### Fallback‑механизм:
 
@@ -152,11 +252,11 @@ Spring Cloud Circuit Breaker
 ---
 
 ### Внешний API
-Для сервера статистики:
-https://raw.githubusercontent.com/yandex-praktikum/java-explore-with-me/main/ewm-stats-service-spec.json
+Для сервера рекомендаций (тестер):
+https://github.com/yandex-praktikum/java-plus-graduation/blob/ci/Readme.md
 
-Для основной функциональности:
-https://raw.githubusercontent.com/yandex-praktikum/java-explore-with-me/main/ewm-main-service-spec.json
+Для основной функциональности (postman):
+https://github.com/yandex-praktikum/java-plus-graduation/blob/ci/.github/workflows/stuff/postman/recommendations/ewm-main-service.json
 
 ---
 
