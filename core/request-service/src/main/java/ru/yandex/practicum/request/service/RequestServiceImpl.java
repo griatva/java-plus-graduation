@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.client.stats.CollectorClient;
+import ru.practicum.grpc.stats.messages.ActionTypeProto;
 import ru.yandex.practicum.interaction.client.EventClient;
 import ru.yandex.practicum.interaction.client.UserClient;
 import ru.yandex.practicum.interaction.dto.EventFullDto;
@@ -29,6 +31,7 @@ public class RequestServiceImpl implements RequestService {
     private final ParticipationRequestRepository requestRepository;
     private final UserClient userClient;
     private final EventClient eventClient;
+    private final CollectorClient collectorClient;
 
 
     @Override
@@ -71,6 +74,8 @@ public class RequestServiceImpl implements RequestService {
         if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
             request.setStatus(ParticipationRequestStatus.CONFIRMED);
         }
+
+        collectorClient.sendUserAction(requesterId, eventId, ActionTypeProto.ACTION_REGISTER);
 
         return ParticipationRequestMapper.toDto(requestRepository.save(request));
     }
@@ -117,5 +122,10 @@ public class RequestServiceImpl implements RequestService {
         List<ParticipationRequest> savedRequests = requestRepository.saveAll(requestsToSave);
 
         return savedRequests.size();
+    }
+
+    @Override
+    public ParticipationRequestDto findByEventIdAndUserId(long eventId, long userId) {
+        return ParticipationRequestMapper.toDto(requestRepository.findByEventIdAndRequesterId(eventId, userId));
     }
 }

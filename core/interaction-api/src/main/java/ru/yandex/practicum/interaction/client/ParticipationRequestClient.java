@@ -34,4 +34,8 @@ public interface ParticipationRequestClient {
     @PutMapping
     Integer updateAllRequests(@RequestBody List<ParticipationRequestDto> updatedRequests);
 
+    @GetMapping("/byEventIdAndUserId")
+    ParticipationRequestDto getByEventIdAndUserId(@RequestParam Long eventId,
+                                                  @RequestParam Long userId);
+
 }

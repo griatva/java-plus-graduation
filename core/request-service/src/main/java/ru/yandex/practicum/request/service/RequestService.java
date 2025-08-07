@@ -19,4 +19,6 @@ public interface RequestService {
     Long countByEventIdAndStatus(Long eventId, ParticipationRequestStatus status);
 
     Integer updateAllRequests(List<ParticipationRequestDto> updatedRequests);
+
+    ParticipationRequestDto findByEventIdAndUserId(long eventId, long userId);
 }

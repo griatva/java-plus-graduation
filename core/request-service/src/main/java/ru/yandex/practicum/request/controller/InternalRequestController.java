@@ -32,6 +32,14 @@ public class InternalRequestController {
         return ResponseEntity.ok(requestService.findAllByEventIdInAndStatus(eventIds, status));
     }
 
+    @GetMapping("/byEventIdAndUserId")
+    public ResponseEntity<ParticipationRequestDto> getByEventIdAndUserId(@RequestParam Long eventId,
+                                                                         @RequestParam Long userId) {
+        log.info("Getting request by eventId: {} and userId: {}", eventId, userId);
+        return ResponseEntity.ok(requestService.findByEventIdAndUserId(eventId, userId));
+    }
+
+
     @GetMapping("/count")
     public ResponseEntity<Long> countByEventIdAndStatus(@RequestParam Long eventId,
                                                         @RequestParam ParticipationRequestStatus status) {
