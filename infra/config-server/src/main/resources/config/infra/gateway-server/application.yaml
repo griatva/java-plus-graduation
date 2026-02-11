@@ -3,13 +3,13 @@ spring:
     gateway:
       discovery.locator.enabled: true
       routes:
-        # USER-SERVICE контроллеры
+        # USER-SERVICE controllers
         - id: user_service_routes
           uri: lb://user-service
           predicates:
             - Path=/admin/users/**
 
-        # COMMENT-SERVICE контроллеры
+        # COMMENT-SERVICE controllers
         - id: admin_comment_service_routes
           uri: lb://comment-service
           predicates:
@@ -25,13 +25,13 @@ spring:
           predicates:
             - Path=/events/{eventId}/comments/**
 
-        # REQUEST-SERVICE контроллеры
+        # REQUEST-SERVICE controllers
         - id: private_request_service_routes
           uri: lb://request-service
           predicates:
             - Path=/users/{userId}/requests/**
 
-        # EVENT-SERVICE контроллеры
+        # EVENT-SERVICE controllers
         - id: admin_categories_event_service_routes
           uri: lb://event-service
           predicates:

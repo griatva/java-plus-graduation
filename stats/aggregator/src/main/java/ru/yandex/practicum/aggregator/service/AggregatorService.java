@@ -21,18 +21,17 @@ public class AggregatorService {
     private final AggregatorKafkaProducer kafkaProducer;
     private final KafkaProperties kafkaProperties;
 
-    // Матрица весов: eventId -> (userId -> maxWeight)
+    // Weight matrix: eventId -> (userId -> maxWeight)
     private final Map<Long, Map<Long, Double>> userEventWeights = new HashMap<>();
 
-    // Таблица сходств: (eventA -> (eventB -> similarity))
+    // Similarity table: (eventA -> (eventB -> similarity))
     private final Map<Long, Map<Long, Double>> similarities = new HashMap<>();
 
-
-    // для вычисления схожести:
-    // Частичные суммы минимальных весов: (eventA -> (eventB -> S_min))
+    // For similarity calculation:
+    // Partial sums of minimum weights: (eventA -> (eventB -> S_min))
     private final Map<Long, Map<Long, Double>> minWeightsSums = new HashMap<>();
 
-    // Общие суммы весов для каждого мероприятия: eventId -> sumWeights
+    // Total weight sums for each event: eventId -> sumWeights
     private final Map<Long, Double> eventSums = new HashMap<>();
 
 

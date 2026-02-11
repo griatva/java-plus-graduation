@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Ошибки валидации @Valid
+    // Validation errors (@Valid)
     @ExceptionHandler({ValidationException.class, MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handlerValidationException(final Exception e) {
@@ -31,12 +31,18 @@ public class GlobalExceptionHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
-        return new ApiError("Запрос составлен некорректно", e.getMessage(),
-                HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
+
+        log.error("Error: 400 BAD_REQUEST - {}", stackTrace);
+
+        return new ApiError(
+                "Invalid request",
+                e.getMessage(),
+                HttpStatus.BAD_REQUEST.name(),
+                LocalDateTime.now()
+        );
     }
 
-    // Нарушения ограничений @NotNull, @PositiveOrZero и др.
+    // Constraint violations (@NotNull, @PositiveOrZero, etc.)
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {
         Map<String, String> error = new HashMap<>();
@@ -44,7 +50,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    // Бизнес-исключения (ручные throw new IllegalArgumentException(...))
+    // Business exceptions (manual throw new IllegalArgumentException(...))
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class, NoSuchElementException.class})
     public ResponseEntity<Map<String, String>> handleIllegalState(RuntimeException ex) {
         Map<String, String> error = new HashMap<>();
@@ -52,7 +58,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    // Отсутствие обязательного параметра запроса ?eventId=
+    // Missing required request parameter (e.g. ?eventId=)
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, String>> handleMissingParam(MissingServletRequestParameterException ex) {
         Map<String, String> error = new HashMap<>();
@@ -63,7 +69,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getReason()); // например: "Event is not published"
+        error.put("error", ex.getReason());
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
 
@@ -75,22 +81,31 @@ public class GlobalExceptionHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        log.error("Ошибка: 404 NOT_FOUND - {}", stackTrace);
-        return new ApiError("Объект не найден или недоступен", e.getMessage(),
-                HttpStatus.NOT_FOUND.name(), LocalDateTime.now());
+
+        log.error("Error: 404 NOT_FOUND - {}", stackTrace);
+
+        return new ApiError(
+                "Object not found or unavailable",
+                e.getMessage(),
+                HttpStatus.NOT_FOUND.name(),
+                LocalDateTime.now()
+        );
     }
 
     @ExceptionHandler(FeignException.NotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleFeignNotFound(FeignException e) {
-        log.error("Ошибка Feign: 404 NOT_FOUND - {}", e.getMessage());
-        return new ApiError("Объект не найден или недоступен",
+        log.error("Feign error: 404 NOT_FOUND - {}", e.getMessage());
+
+        return new ApiError(
+                "Object not found or unavailable",
                 e.getMessage(),
                 HttpStatus.NOT_FOUND.name(),
-                LocalDateTime.now());
+                LocalDateTime.now()
+        );
     }
 
-    // Дублирование данных (например, попытка создать категорию с уже существующим названием)
+    // Data conflict (e.g. attempt to create an entity that already exists)
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleDuplicatedData(final ConflictException e) {
@@ -98,12 +113,18 @@ public class GlobalExceptionHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        log.error("Ошибка: 409 CONFLICT - {}", stackTrace);
-        return new ApiError("Дублирование информации", e.getMessage(),
-                HttpStatus.CONFLICT.name(), LocalDateTime.now());
+
+        log.error("Error: 409 CONFLICT - {}", stackTrace);
+
+        return new ApiError(
+                "Data conflict",
+                e.getMessage(),
+                HttpStatus.CONFLICT.name(),
+                LocalDateTime.now()
+        );
     }
 
-    // Общий обработчик (fallback)
+    // Generic handler (fallback)
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handlerException(final Exception e) {
@@ -111,8 +132,14 @@ public class GlobalExceptionHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        log.error("Ошибка: 500 INTERNAL_SERVER_ERROR - {}", stackTrace);
-        return new ApiError("Неизвестная ошибка", e.getMessage(),
-                HttpStatus.INTERNAL_SERVER_ERROR.name(), LocalDateTime.now());
+
+        log.error("Error: 500 INTERNAL_SERVER_ERROR - {}", stackTrace);
+
+        return new ApiError(
+                "Unexpected error",
+                e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR.name(),
+                LocalDateTime.now()
+        );
     }
 }

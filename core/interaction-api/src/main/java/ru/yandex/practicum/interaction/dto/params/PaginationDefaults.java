@@ -5,6 +5,6 @@ public class PaginationDefaults {
     public static final int DEFAULT_SIZE = 10;
 
     private PaginationDefaults() {
-        // утилитный класс — предотвращает создание экземпляров
+        // utility class — prevents instantiation
     }
 }

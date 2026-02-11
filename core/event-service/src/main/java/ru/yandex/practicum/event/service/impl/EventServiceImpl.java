@@ -266,7 +266,7 @@ public class EventServiceImpl implements EventService {
 
         int isUpdate = requestClient.updateAllRequests(updatedRequests);
 
-        log.info("Обновлено заявок, шт: {}", isUpdate);
+        log.info("Updated requests count: {}", isUpdate);
 
         if (isUpdate == -1) {
             throw new RuntimeException("Updating is not possible now: Request service is unavailable, please try again later.");
@@ -396,7 +396,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventFullDto getEventForInternalUse(Long eventId) { //для взаимодействия с другими микросервисами
+    public EventFullDto getEventForInternalUse(Long eventId) { // for interaction with other microservices
         Event event = getEventById(eventId);
         Map<Long, Double> ratingMap = getRating(List.of(event));
         Map<Long, Long> confirmedMap = getConfirmedRequests(List.of(event));

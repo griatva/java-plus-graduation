@@ -32,7 +32,7 @@ public class UserActionProcessor implements Runnable {
     @Override
     public void run() {
 
-        log.info("UserActionProcessor запущен в потоке: {}", Thread.currentThread().getName());
+        log.info("UserActionProcessor started in thread: {}", Thread.currentThread().getName());
 
         Runtime.getRuntime().addShutdownHook(new Thread(userActionsConsumer::wakeup));
         String topic = kafkaProperties.getConsumers().get("user-actions").getTopic();

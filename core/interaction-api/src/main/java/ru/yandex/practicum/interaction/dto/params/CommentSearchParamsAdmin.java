@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CommentSearchParamsAdmin {
 
-    private Long authorId;       // фильтр по автору
-    private Long eventId;        // фильтр по событию
-    private String rangeStart;   // фильтр по дате начала
-    private String rangeEnd;     // фильтр по дате конца
+    private Long authorId;       // filter by author
+    private Long eventId;        // filter by event
+    private String rangeStart;   // filter by start date
+    private String rangeEnd;     // filter by end date
 
     @PositiveOrZero
     private Integer from = PaginationDefaults.DEFAULT_FROM;
