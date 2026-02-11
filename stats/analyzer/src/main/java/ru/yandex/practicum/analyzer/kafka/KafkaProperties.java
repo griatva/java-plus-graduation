@@ -10,7 +10,7 @@ import java.util.Map;
 public class KafkaProperties {
 
     private String bootstrapServers;
-    private Map<String, Consumer> consumers; // ключи user-actions и events-similarity
+    private Map<String, Consumer> consumers; // keys: user-actions and events-similarity
 
     @Data
     public static class Consumer {

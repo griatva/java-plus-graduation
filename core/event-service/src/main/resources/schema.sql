@@ -1,10 +1,8 @@
--- Таблица категорий (для связей с событиями)
 CREATE TABLE IF NOT EXISTS categories (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE
 );
 
--- Таблица событий
 CREATE TABLE IF NOT EXISTS events (
     id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
@@ -24,14 +22,12 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 
--- Таблица подборок событий
 CREATE TABLE IF NOT EXISTS compilations (
     id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     pinned BOOLEAN DEFAULT FALSE
 );
 
--- Связующая таблица между подборками и событиями
 CREATE TABLE IF NOT EXISTS compilation_events (
     compilation_id BIGINT NOT NULL,
     event_id BIGINT NOT NULL,
@@ -40,7 +36,6 @@ CREATE TABLE IF NOT EXISTS compilation_events (
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
--- Внешние ключи
 ALTER TABLE events
 ADD CONSTRAINT fk_category
 FOREIGN KEY (category_id) REFERENCES categories(id);

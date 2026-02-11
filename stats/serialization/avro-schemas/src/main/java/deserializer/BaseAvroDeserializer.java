@@ -31,7 +31,7 @@ public class BaseAvroDeserializer<T extends SpecificRecordBase> implements Deser
             }
             return null;
         } catch (Exception e) {
-            throw new DeserializationException("Ошибка десериализации данных из топика [" + topic + "]", e);
+            throw new DeserializationException("Error deserializing data from topic [" + topic + "]", e);
         }
     }
 }

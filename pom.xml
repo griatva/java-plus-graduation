@@ -36,7 +36,6 @@
 		<protobuf-plugin.version>2.4.0</protobuf-plugin.version>
 	</properties>
 
-	<!-- Добавляем модули проекта -->
 	<modules>
 		<module>stats</module>
 		<module>core</module>
@@ -46,7 +45,7 @@
 	<build>
 		<pluginManagement>
 			<plugins>
-				<!-- Запуск тестов -->
+				<!-- Run tests -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
@@ -103,7 +102,7 @@
 					</executions>
 				</plugin>
 
-				<!-- JaCoCo (анализ покрытия тестами) -->
+				<!-- JaCoCo (test coverage analysis) -->
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
@@ -176,7 +175,7 @@
 		</pluginManagement>
 	</build>
 
-	<!-- Определяем профили -->
+	<!-- Define profiles -->
 	<profiles>
 		<profile>
 			<id>check</id>
@@ -216,14 +215,14 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- Версия для stat-client -->
+			<!-- Version for stat-client -->
 			<dependency>
 				<groupId>ru.practicum</groupId>
 				<artifactId>stats-client</artifactId>
 				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 
-			<!-- Версия для stat-dto -->
+			<!-- Version for stat-dto -->
 			<dependency>
 				<groupId>ru.practicum</groupId>
 				<artifactId>stats-dto</artifactId>
